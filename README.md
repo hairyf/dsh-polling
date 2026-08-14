@@ -1,99 +1,102 @@
 # dsh-polling
 
-轮询任务插件 —— DeepSeek Harness 的即插即用插件：**零上游改动**，一条命令安装。
-
-> 轮询 = 一个真实工作区。轮询任务 = 工作区里的会话。到点时插件在任务自己的会话里唤醒模型，让模型自主执行你写好的任务步骤——一切模型能做的事都可以轮询：检查/处理文件、抓取网页、发送消息、邮件……
+**给你的 DeepSeek Harness 装一个"到点自己干活"的定时助手。** 对它说一句"每天上午 9 点检查稿件文件夹"，剩下的交给模型按时完成。
 
 [![](https://img.shields.io/badge/powered_by-dsh-4D6BFE?style=flat-square&logo=deepseek&logoColor=white)](https://github.com/deepseek-ai/deepseek-harness)
 
-## 环境要求
+## 它能干什么
 
-- 已安装 `dsh` CLI（[DeepSeek Harness](https://github.com/deepseek-ai/deepseek-harness)，Node.js `^22.19.0 || >=24.0.0`）
-- 使用 Web 配置（`dsh web`）以获得完整体验；headless 下模型工具（`polling_*`）仍可用，Web 管理界面不可用
+- **定时检查**：盯文件夹、盯网页，有新东西就处理、汇报
+- **定时产出**：抓数据、写日报/周报、整理归档
+- **定时跑腿**：发消息、跑脚本……一切你愿意交代给模型的重复活儿
 
-## 安装（任意 DeepSeek Harness 用户）
+任务执行很安静：在它自己的会话里进行，不会打断你正在聊的天；过程和结果就是那段对话记录，随时打开看看，还能插句话指挥它。
+
+## 安装
+
+需要先装好 `dsh` CLI 并运行过 `dsh web`。然后一条命令：
 
 ```bash
-# 方式一：从 npm（推荐）
 dsh plugin --profile web add dsh-polling
-
-# 方式二：从 GitHub（需按提示允许一次构建）
-dsh plugin --profile web add github:cnyac/dsh-polling
-
-# 方式三：tarball
-dsh plugin --profile web add ./dsh-polling-0.1.0.tgz
 ```
 
-重启 `dsh web` 即可。卸载：`dsh plugin --profile web remove dsh-polling`。
+重启 `dsh web`，侧边栏就会出现「轮询」工作区。
 
-> **关于方式二（GitHub 安装）**：git 安装拉取的是源码，`prepare` 脚本会自动完成构建；pnpm ≥10 默认拒绝执行 git 依赖的构建脚本，首次 `add` 会失败，`dsh` 会提示你把包键加进该 profile 的 `pnpm-workspace.yaml` 的 `allowBuilds` 后重试。请只为源码可信的包授权，并建议锁定 commit（`github:cnyac/dsh-polling#<sha>`）。
+> 也可以从 GitHub 安装（`dsh plugin --profile web add github:cnyac/dsh-polling`）或本地 tarball 安装。GitHub 方式第一次会提示你"允许构建"，按提示确认一次即可。
 
-## 使用
+## 开始用
 
-### 对话内自然语言创建
+最简单的开始——直接对它说：
 
-直接说，例如：
+> 帮我建个轮询任务：每个工作日早上 9 点检查 `D:\稿件\待处理`，有新稿件就按常规流程润色归档。
 
-> 帮我建一个轮询任务：每天上午 9 点检查 `D:\稿件\待处理` 文件夹，有新的新闻稿件就用常规流程润色修改并归档。
+它会在「轮询」工作区建一个任务会话，到点自动开跑。想改时间、暂停、删除？两个入口都行：
 
-插件会通过 `polling_create` 工具自动创建任务，任务作为一个新会话出现在侧边栏 **轮询** 工作区（自动置顶）。
+- **侧边栏「轮询」工作区** → 点进任务会话 → 右上角三点菜单 → **轮询任务**
+- **设置 → 插件 → 插件配置 →「轮询任务」卡片**：完整管理页，新建 / 列表 / 编辑 / 立即执行 / 启停 / 删除
 
-### Web 前端管理
-
-- 侧边栏 **轮询** 工作区：展开/收起、查看任务会话、点击进入对话（可主动发消息指挥任务）
-- 任务会话头部右侧 **三点菜单 → 轮询任务**：编辑任务要素（名称 / 执行时间 / 目标描述 / 任务步骤）、立即执行、启停、删除
-- 设置 → 插件 → 插件配置 → **轮询任务** 卡片：完整的任务管理页（新建 / 列表 / 编辑 / 立即执行 / 启停 / 删除）
-
-## 任务要素
+## 一个任务由什么组成
 
 | 要素 | 说明 |
 |---|---|
-| 执行时间 | **执行日期**（每天 / 工作日 / 周末 / 自定义周几）× **频率**（每 N 分钟 / 每小时）× **时间段**（HH:MM–HH:MM 或全天），另附"下次执行"实时预览 |
-| 模型 | 可选模型（从已配置的 API 枚举）；缺省为部署默认 |
-| 目标描述 | 给模型的背景上下文（可选） |
-| 任务步骤 | 自然语言指令；到点时模型在任务会话里自主执行 |
-| 启用 | 开关；停用后不再触发 |
+| **执行时间** | 哪几天（每天 / 工作日 / 周末 / 自定义）+ 多频繁（每 N 分钟 / 每小时）+ 几点到几点；选的时候有"下次执行"实时预览 |
+| **模型** | 用哪个模型跑这个任务；不选就用你的默认配置 |
+| **目标描述** | 给任务一个大背景（可选，比如"这是给客户看的日报"） |
+| **任务步骤** | 到点后要它做什么，用大白话写清楚 |
+| **启用** | 关掉就不触发，随时可以再开 |
 
-> 内部以标准 5 段 cron 持久化（如 `*/30 9-18 * * 1-5` = 工作日 09:00–18:00 每 30 分钟），UI 从不显示原始表达式。任务执行中再次到点会**跳过并记录**（防重入，不堆积）。重启后自动补最近一次到期。
+## 你会注意到的几个贴心行为
 
-## 费用与安全提醒
+- 上一个任务还在跑、又到点了 → 这次**跳过**，不会堆一堆指令排队执行
+- 电脑关机错过时间 → 下次启动**补跑最近一次**
+- 任务会话被你归档了 → 下次触发自动开个**新会话**继续，旧会话留在归档里当历史
+- 任务名会固定成会话标题，不会被模型自动改名
 
-- **每次触发都会发起一次模型调用**（在任务自己的会话里），轮询频率越高消耗越大；请按需设置频率和时间段。
-- 任务步骤由模型**自主执行**（可调用 shell、文件、网络等一切已授权工具），与手动对话使用相同的权限体系——只给任务写它该做的事。
-- 任务注册表（`tasks.json`）与任务会话历史均保存在你的本机 `$DSH_HOME` 下，插件不向任何外部服务上报数据。
+## 费用与安全
 
-## 工作方式（简要）
+- **每次触发 = 一次模型调用**，任务越频繁花得越多——按需设置频率就好
+- 任务由模型**自主执行**，权限和手动对话一致——只给它写它该做的事
+- 任务数据全在你本机（`$DSH_HOME` 下），插件不向任何外部服务上报
 
-- **调度**：host 平面 timer owner（不依赖任何会话存活）。到点 → 恢复任务会话的 agent → `followup(任务指令)` 在任务会话里执行。到期判断锚定上次执行时刻：错过多次只补最近一次，重启后同样只补一次。
-- **防重入**：任务会话的 agent 仍在执行时到点 → 跳过本次并记录 `skipped`（等价于任务计划程序的"不启动新实例"），避免指令堆积。
-- **归档恢复**：任务会话被归档（隐藏）后，下次触发（到点或"立即执行"）会自动为任务**新建一个会话**继续跑，旧会话保留为归档历史。
-- **静默执行**：执行发生在任务自己的会话里，不打扰其他会话；过程与结果就是该会话的对话记录。
-- **存储**：任务注册表在 `<dshHome>/polling/tasks.json`（原子写）；执行历史在任务会话日志里（DSH 自带持久化）。
-- **模型工具**：`polling_create / polling_list / polling_edit / polling_delete / polling_trigger` 注册在全局工具层，任何 preset 的会话都可见。
-- **Web 数据通路**：`ctx.connection.rpc` 的 `/polling` 通道（第三方通道是 DSH 的一等扩展点）。
-- **分发**：标准 bundle 格式（`dsh.bundle` + `cordis.patch.yml`），双面（host 调度 + client UI）单包。
+## 常见问题
 
-## 配置（`cordis.patch.yml` 可覆盖）
+**装完没看到「轮询」工作区？**
+重启 `dsh web` 试试；新建第一个任务时工作区也会自动创建。
+
+**任务没按点跑？**
+先看三处：任务是否处于"启用"、时间段是否覆盖当前时刻、编辑面板里"下次执行"显示什么。还有问题就来 [Issues](https://github.com/cnyac/dsh-polling/issues) 找我。
+
+**删了任务，历史会没吗？**
+不会。任务会话和对话记录都会保留，只是不再触发。
+
+**想折腾配置？**
+进阶配置（自定义数据目录、强制置顶）见下方折叠内容。
+
+<details>
+<summary>进阶：自定义配置</summary>
+
+在 profile 的 `cordis.patch.yml` 里覆盖插件行即可（一般用不上）：
 
 ```yaml
 - id: polling
   name: dsh-polling
   config:
-    dir: 'D:\MyPolling'   # 轮询目录（缺省 <dshHome>/polling；示例为覆盖场景）
-    keepPinned: true      # 是否强制置顶（缺省 false，创建时置顶一次）
+    dir: 'D:\MyPolling'   # 轮询数据目录（默认 <dshHome>/polling）
+    keepPinned: true      # 是否一直把「轮询」工作区钉在侧边栏顶部（默认 false）
 ```
+</details>
 
 ## 开发
 
 ```bash
-npm install --legacy-peer-deps   # 仅构建工具；运行时依赖由 DSH 宿主提供
+npm install --legacy-peer-deps   # 只需构建工具；运行时代码由 dsh 宿主提供
 npm run typecheck
-npm test                         # cron 解析器单测
-npm run build                    # lib/index.js + lib/client.js + lib/types/（含 client bundle 冒烟验证）
+npm test                         # cron 解析与调度模型单测
+npm run build
 npm pack                         # 产出可分发的 tarball
 ```
 
-设计文档见 [DESIGN.md](DESIGN.md)。
+设计文档见 [DESIGN.md](DESIGN.md)。有问题或想法，欢迎在 [Issues](https://github.com/cnyac/dsh-polling/issues) 或[官方社区帖子](https://github.com/deepseek-ai/deepseek-harness/discussions/1006)里聊。
 
 ## 许可证
 
