@@ -1,0 +1,11 @@
+# dsh-polling bundle patch: mounts the polling plugin.
+# One row serves both faces: the Loader imports the package's Node entry
+# (the `apply` host plugin), and dsh-client-modules discovers the same
+# package's `dsh.client` declaration, hashes lib/client.js into
+# window.__DSH_BOOT__, and serves it from /plugins/dsh-polling/client.js.
+# The row id is arbitrary; later layers may override it by id.
+- insert:
+    - id: polling
+      name: dsh-polling
+      config:
+        keepPinned: false
