@@ -1,6 +1,6 @@
 {
   "name": "dsh-polling",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Recurring/scheduled tasks (轮询任务/定时任务) plugin for DeepSeek Harness: cron-driven polling jobs as real sessions, natural-language creation, model tools (polling_create/list/edit/delete/trigger) and a web UI. Install-and-go via `dsh plugin add`.",
   "license": "MIT",
   "keywords": [
