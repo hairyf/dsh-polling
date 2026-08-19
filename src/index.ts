@@ -12,7 +12,9 @@ import { join } from 'node:path'
 import type { Context } from '@deepseek-ai/cordis'
 import type {} from '@deepseek-ai/dsh-agent-presets'
 import { dshHomePath } from '@deepseek-ai/dsh-home-paths'
+import { settingsNamespace } from '@deepseek-ai/dsh-settings'
 import type {} from '@deepseek-ai/dsh-session-persistence'
+import z from '@deepseek-ai/schemastery'
 import { registerPollingRpc } from './routes.ts'
 import { PollingScheduler } from './scheduler.ts'
 import { PollingService } from './service.ts'
@@ -111,5 +113,14 @@ export async function apply(ctx: Context, config: Config = {}): Promise<void> {
         void workspaceId
       }
     }, 'polling.workspace()')
+  })
+
+  // Serve the `polling` settings namespace so the client Plugins tab
+  // ("插件配置") dispatches the polling card. `settings` is an optional Host
+  // service; deployments without it (e.g. headless) skip this gracefully.
+  // The namespace exists purely as a dispatch key — the card reads no
+  // settings scope — so an empty schema is correct.
+  ctx.inject(['settings'], (settingsCtx: Context) => {
+    settingsCtx.settings.register(settingsNamespace('polling'), z.object({}))
   })
 }

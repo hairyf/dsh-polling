@@ -45,7 +45,9 @@ export function apply(ctx: ClientContext): void {
   // first-class shape for plugin-owned surfaces.
   ctx.slots.inject('settings.plugin.item', () => ctx.slots.register({
     name: 'settings.plugin.item',
-    id: 'polling-tasks',
+    // Keyed slot: the key is the settings namespace the Host serves, so the
+    // Plugins tab dispatches this card for the `polling` namespace.
+    key: NS,
     // After the shipped bash (0), agent-loop (10), and web-search (20) cards.
     order: 30,
     locale: NS,
